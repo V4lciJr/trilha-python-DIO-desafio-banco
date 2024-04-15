@@ -1,54 +1,240 @@
-menu = '''
- ######## MENU #######
- ## 1 - Depositar   ##
- ## 2 - Sacar       ##
- ## 3 - Extrato     ##
- ## 0 - SAIR        ##
- #####################
- =>  '''
+from menus import menu_cliente, menu_gerente
+from time import sleep
+from cliente import Cliente
+from conta import Conta
+from os import system
 
-saldo = 0
-limite = 500
-extrato = ''
 numero_saques = 0
 LIMITE_SAQUES = 3
+contas = []
+clientes = []
 
-while True:
-    opcao = int(input(menu))
 
-    if opcao == 1:
-        deposito = float(input('Digite o valor do depósito:R$ '))
-        if deposito <= 0:
-            print(f'Você tentou depositar R${deposito:.2f}, não é permitido valores menores ou igual a zero.\nDigite um valor válido.')
+def application(tipo):
+    while True:
+        system('cls')
+        op = None
+
+        if tipo == 1:
+            op = aplicacao_gerente()
+        elif tipo == 2:
+            op = aplicacao_cliente()
+
+        elif op == 0:
+            print('\t\t Agradecemos à preferência. É um prazer tê-lo conosco!!!')
+            print('\t\t Volte Sempre!!!')
+            sleep(1)
+            break
+
+        elif op == 1:
+            criar_conta()
+        elif op == 2:
+            efetuar_saque()
+        elif op == 3:
+            efetuar_deposito()
+        elif op == 4:
+            efetuar_transferencia()
+        elif op == 5:
+            listar_contas()
+        elif op == 6:
+            listar_clientes()
+        elif op == 7:
+            pesquisar_conta()
+        elif op == 8:
+            pesquisar_cliente()
+        elif op == 9:
+            imprimir_extrato()
         else:
-            saldo += deposito
-            extrato += f'=> Depósito R${deposito:.2f}\n'
+            print('\t\t Operação Inválida. Volte ao Menu e digite uma opção válida.')
+        sleep(2)
 
-    elif opcao == 2:
 
-        valor_saque = float(input('Digite o valor que deseja sacar:R$ '))
+def criar_conta():
+    print('Informe os dados do Cliente: ')
+    nome = input('Nome: ')
+    cpf = input('CPF: ')
+    data_nascimento = input('Data de Nascimento [dd/mm/aaaa]: ')
+    email = input('Email: ')
 
-        if valor_saque > saldo:
-            print(f'Você não possui saldo suficiente para sacar.\nSaldo R${saldo:.2f}')
-        elif valor_saque > limite:
-            print(f'Operação Inválida. Valor de saque maior do que o limite.\nLimite R${limite:.2f}')
-        elif numero_saques >= LIMITE_SAQUES:
-            print(f'Você ultrapassou o limite de saques diários.\nLimite de saques {LIMITE_SAQUES}')
+    cliente = Cliente(nome, cpf, data_nascimento, email)
+    conta = Conta(cliente)
 
-        elif valor_saque > 0:
-            saldo -= valor_saque
-            extrato += f'=> Saque: R$-{valor_saque:.2f}\n'
-            numero_saques += 1
+    contas.append(conta)
+    clientes.append(cliente)
 
-    elif opcao == 3:
-        print('###### Extrato ######')
-        print('Não foram realizadas movimentações!!' if not extrato else extrato)
-        print(f'\nSaldo: R${saldo:.2f}')
-        print('#####################')
+    print('\t\t Conta cadastrada com sucesso!!')
+    print('\t\t Dados da Conta: ')
+    print('\t\t ' + '*' * 40)
+    print(conta)
+    sleep(2)
 
-    elif opcao == 0:
-        print('Muito obrigado pela preferência. É um prazer tê-lo conosco\nVolte Sempre!!')
-        break
 
+def efetuar_saque():
+    if possui_contas():
+        tipo_operacao = 'sacar'
+        numero_conta = int(input('Digite o número da sua conta: '))
+        conta = buscar_conta_por_numero(numero_conta)
+
+        if valida_conta(conta, numero_conta, efetuar_saque):
+            valor = ler_valor(tipo_operacao)
+            eh_menor, valor = saldo_insuficiente(valor, conta.saldo_total, tipo_operacao)
+            if eh_menor:
+                conta.sacar(valor, 'Saque de R$')
+
+
+def efetuar_deposito():
+    if possui_contas():
+        tipo_operacao = 'depositar'
+        numero_conta = int(input('Digite o número da sua conta: '))
+        conta = buscar_conta_por_numero(numero_conta)
+
+        if valida_conta(conta, numero_conta, efetuar_deposito):
+            valor = ler_valor(tipo_operacao)
+            valida_valor, valor = valor_maior_q_zero(valor, tipo_operacao)
+            if valida_valor:
+                conta.depositar(valor, 'Depósito de R$')
+
+
+def efetuar_transferencia():
+    tipo_operacao = 'transferir'
+    if possui_contas():
+        conta_orig, numero_conta_orig = ler_conta('Digite o número da sua conta: ')
+
+        if valida_conta(conta_orig, numero_conta_orig, efetuar_transferencia):
+            conta_dest, numero_conta_dest = ler_conta('Digite a conta para a qual deseja transferir: ')
+            if valida_conta(conta_dest, numero_conta_dest, ler_conta):
+                valor = ler_valor(tipo_operacao)
+                eh_menor, valor = saldo_insuficiente(valor, conta_orig.saldo_total, tipo_operacao)
+                if eh_menor:
+                    conta_orig.transferir(conta_dest, valor)
+
+
+def listar_contas():
+    if possui_contas():
+        print('\t\t Lista de Contas')
+        print('\t\t ' + '*' * 40)
+        for conta in contas:
+            print(conta)
+            print('\t\t ' + '*' * 40)
+
+
+def listar_clientes():
+    if possui_clientes():
+        print('\t\t Lista de Clientes')
+        print('\t\t ' + '*' * 40)
+        for cliente in clientes:
+            print(cliente)
+            print('\t\t ' + '*' * 40)
+
+
+def pesquisar_conta():
+    if possui_contas():
+        numero_conta = int(input('Digite o número da conta que deseja pesquisar: '))
+        conta = buscar_conta_por_numero(numero_conta)
+
+        if conta:
+            print(conta)
+            sleep(2)
+        else:
+            print(f'Não foram encontradas contas com o número {numero_conta}. Verifique o número da conta!!')
+            pesquisar_conta()
+
+
+def pesquisar_cliente():
+    if possui_clientes():
+        numero_cliente = int(input('Digite o ID do cliente que deseja pesquisar: '))
+        cliente = buscar_cliente_por_numero(numero_cliente)
+
+        if cliente:
+            print(cliente)
+            sleep(2)
+        else:
+            print(f'Não encontramos cliente(s) com o número {numero_cliente}. Verifique o ID do cliente!!')
+            pesquisar_cliente()
+
+
+def imprimir_extrato():
+    if possui_contas():
+        numero_conta = int(input('Digite o número da conta que deseja verificar o extrato: '))
+        conta = buscar_conta_por_numero(numero_conta)
+
+        if conta:
+            conta.exibir_extrato()
+            sleep(2)
+        else:
+            print(f'Não foram encontradas contas com o número {numero_conta}. Verifique o número da conta!!')
+            imprimir_extrato()
+
+
+def buscar_conta_por_numero(numero_conta):
+    for conta in contas:
+        if numero_conta == conta.numero:
+            return conta
+    return None
+
+
+def buscar_cliente_por_numero(id_cliente):
+    for cliente in clientes:
+        if id_cliente == cliente.id_cliente:
+            return cliente
+    return None
+
+
+def valor_maior_q_zero(valor, tipo_operacao):
+    if valor <= 0:
+        print('\t\t Valor inválido!! Por favor digite um valor maior que 0, para efetuar sua operação!!')
+        valor = ler_valor(tipo_operacao)
+        return valor_maior_q_zero(valor, tipo_operacao)
     else:
-        print('Erro!! Operação inválida. Digite uma operação válida.')
+        return True, valor
+
+
+def saldo_insuficiente(valor, saldo_total, tipo_operacao):
+    valida_valor, valor = valor_maior_q_zero(valor, tipo_operacao)
+
+    if valida_valor:
+        if valor > saldo_total:
+            print(f'\t\t Você não possui saldo suficiente para saque!!\n\t\t Saldo Total: R$ {saldo_total: .2f}!!')
+            valor = ler_valor(tipo_operacao)
+            return saldo_insuficiente(valor, saldo_total, tipo_operacao)
+        else:
+            return True, valor
+
+
+def valida_conta(conta, numero_conta, funcao_banco):
+    if conta:
+        return True
+    else:
+        print(f'Não foram encontradas contas com o número {numero_conta}. Verifique o número da conta!!')
+        funcao_banco()
+
+
+def ler_conta(msg='Digite a conta para a qual deseja transferir: '):
+    numero_conta = int(input(msg))
+    conta = buscar_conta_por_numero(numero_conta)
+
+    return conta, numero_conta
+
+
+def ler_valor(tipo_operacao):
+    valor = float(input(f"Informe o valor que deseja {tipo_operacao}: R$ "))
+    return valor
+
+
+def possui_contas():
+    return True if len(contas) > 0 else print('\t\t Ainda não possuem contas cadastradas!!')
+
+
+def possui_clientes():
+    return True if len(clientes) > 0 else print('\t\t Ainda não possuem clientes cadastrados!!')
+
+
+def aplicacao_cliente():
+    pass
+
+
+def aplicacao_gerente():
+
+    op = menu_gerente()
+
+    return op

@@ -6,11 +6,20 @@ class Conta:
     codigo = 1
     agencia = '0001'
 
+    def __init__(self):
+        self.__numero = Conta.codigo
+        self.__saldo = 0
+        self.__limite = 500
+        self.__saldo_total = self.__calcula_saldo_total
+        self.__agencia = Conta.agencia
+        self.__extrato = ''
+        Conta.codigo += 1
+
     def __init__(self, cliente):
         self.__numero = Conta.codigo
         self.__cliente = cliente
         self.__saldo = 0
-        self.__limite = 200
+        self.__limite = 500
         self.__saldo_total = self.__calcula_saldo_total
         self.__agencia = Conta.agencia
         self.__extrato = ''
