@@ -1,18 +1,23 @@
 from menus import menu_apresentacao
+from banco import banco
 
 while True:
 
     print(menu_apresentacao())
-    usuario = int(input('Que tipo de usuário você é?\nDigite 1 para GERENTE e 2 para CLIENTE ou 0 para sair do '
+    usuario = int(input('Qual o sue nível de usuário?\nDigite 1 para GERENTE e 2 para CLIENTE ou 0 para sair do '
                         'sistema: '))
 
     if usuario == 0:
         print('Muito obrigado pela preferência. É um prazer tê-lo conosco\nVolte Sempre!!')
         break
     elif usuario == 1:
-        pass
+        senha = input('Digite sua senha de acessso: ')
+        if senha == '2123':
+            banco(1)
+        else:
+            print('ERRO!! Senha inválida!!')
     elif usuario == 2:
-        pass
+        banco(2)
     else:
         print('ERRO!!! Opção Inválida.\nPor favor, digite uma opção válida.')
 

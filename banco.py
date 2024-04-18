@@ -1,4 +1,4 @@
-from menus import menu_cliente, menu_gerente
+from menus import menu_cliente, menu_gerente, menu_emprestimo
 from time import sleep
 from cliente import Cliente
 from conta import Conta
@@ -10,7 +10,7 @@ contas = []
 clientes = []
 
 
-def application(tipo):
+def banco(tipo):
     while True:
         system('cls')
         op = None
@@ -20,34 +20,15 @@ def application(tipo):
         elif tipo == 2:
             op = aplicacao_cliente()
 
-        elif op == 0:
-            print('\t\t Agradecemos à preferência. É um prazer tê-lo conosco!!!')
-            print('\t\t Volte Sempre!!!')
-            sleep(1)
-            break
-
-        elif op == 1:
-            criar_conta()
-        elif op == 2:
-            efetuar_saque()
-        elif op == 3:
-            efetuar_deposito()
-        elif op == 4:
-            efetuar_transferencia()
-        elif op == 5:
-            listar_contas()
-        elif op == 6:
-            listar_clientes()
-        elif op == 7:
-            pesquisar_conta()
-        elif op == 8:
-            pesquisar_cliente()
-        elif op == 9:
-            imprimir_extrato()
         else:
             print('\t\t Operação Inválida. Volte ao Menu e digite uma opção válida.')
         sleep(2)
 
+        if op == 0:
+            print('\t\t Agradecemos à preferência. É um prazer tê-lo conosco!!!')
+            print('\t\t Volte Sempre!!!')
+            sleep(1)
+            break
 
 def criar_conta():
     print('Informe os dados do Cliente: ')
@@ -107,6 +88,46 @@ def efetuar_transferencia():
                 eh_menor, valor = saldo_insuficiente(valor, conta_orig.saldo_total, tipo_operacao)
                 if eh_menor:
                     conta_orig.transferir(conta_dest, valor)
+
+
+def realizar_emprestimo(tipo_acesso=0):
+    taxa=0.4
+    if possui_contas():
+        numero_conta = int(input('Digite o número da sua conta: '))
+        conta = buscar_conta_por_numero(numero_conta)
+
+        if tipo_acesso == 1:
+            resp = input('Deseja mudar a taxa de empréstimo do cliente? S ou N').upper()
+            if resp in 'SIM':
+                taxa = float(input('Informe a taxa negociada: EX: 10% 20%: '))
+                taxa /= 100
+        if valida_conta(conta, numero_conta, realizar_emprestimo):
+            salario = float(input('Digite o valor do seu salário: R$ '))
+            parcela = float(input('Informa o valor da parcela que seja pagar por mês: R$ '))
+            emprestimo(salario, parcela, conta, realizar_emprestimo,taxa)
+
+def emprestimo(salario, valor_parcela, conta, funcao, taxa=0.4):
+    limite_parcela = salario * 0.2
+
+    if valor_parcela > limite_parcela:
+        print('EMPRÉSTIMO NEGADO!!!\nO valor da parcela não pode compromenter mais do que 20% do salário.')
+        print(f'Valor Máximo da parcela: R$ {limite_parcela:.2f}')
+        funcao()
+    else:
+        total_a_pagar = valor_parcela * 48
+        limite_emprestimo = total_a_pagar - (total_a_pagar * taxa)
+        resp = menu_emprestimo(limite_emprestimo, total_a_pagar)
+        if resp == 1:
+            conta.depositar(limite_emprestimo)
+        elif resp == 2:
+            valor = float(input('Digite o valor do Empréstimo desejado: '))
+            if valor >= limite_emprestimo:
+                conta.depositar(valor)
+            else:
+                print(f'Valor não Permitido!! R${valor:.2f} ultrapassa o seu Limite de Empréstimos.')
+        else:
+            exit()
+
 
 
 def listar_contas():
@@ -229,8 +250,26 @@ def possui_clientes():
     return True if len(clientes) > 0 else print('\t\t Ainda não possuem clientes cadastrados!!')
 
 
+
+def operacoes_gerais(op):
+
+    if op == 1:
+        criar_conta()
+    elif op == 2:
+        efetuar_saque()
+    elif op == 3:
+        efetuar_deposito()
+    elif op == 4:
+        efetuar_transferencia()
+    elif op == 5:
+        realizar_emprestimo()
+    elif op == 6:
+        imprimir_extrato()
+
 def aplicacao_cliente():
-    pass
+    op = menu_cliente()
+    operacoes_gerais(op)
+    return op
 
 
 def aplicacao_gerente():
