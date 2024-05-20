@@ -50,21 +50,24 @@ def menu_gerente():
 
 
 def menu_apresentacao():
-    menu = '''
-     ********************
-     ******* MENU *******
-     ** 1 - Gerente    **
-     ** 2 - Cliente    **
-     ** 0 - SAIR       **
-     ********************
-     ********************
-     '''
-    return menu
+    print('''
+             ********************
+             ******* MENU *******
+             ** 1 - Gerente    **
+             ** 2 - Cliente    **
+             ** 0 - SAIR       **
+             ********************
+             ********************
+     ''')
+
+    op = int(input('Qual o sue nível de usuário?\nDigite 1 para GERENTE e 2 para CLIENTE ou 0 para sair do '
+                            'sistema: '))
+    return op
 
 
 def menu_emprestimo(limite_emprestimo, total_a_pagar):
     print(f'Você pode pegar até R$ {limite_emprestimo:.2f} emprestados.')
     print(f'Esse valor pode ser dividido em até 48x de R$ {total_a_pagar / 48:.2f}')
-    resp = input('O que deseja fazer?\n1 - Para realizar o empréstimo no valor integral\n2 - Para Outro Valor\nOU '
-                 'QUALQUER TECLA PARA CANCELAR A OPERAÇÃO.')
+    resp = int(input('O que deseja fazer?\n1 - Para realizar o empréstimo no valor integral\n2 - Para Outro Valor\nOU '
+                 'QUALQUER TECLA PARA CANCELAR A OPERAÇÃO. '))
     return resp

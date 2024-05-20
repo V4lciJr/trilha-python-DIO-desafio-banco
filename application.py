@@ -1,25 +1,33 @@
 from menus import menu_apresentacao
-from banco import banco
+from modulo_gerente import *
+from modulo_cliente import *
 
-while True:
 
-    print(menu_apresentacao())
-    usuario = int(input('Qual o sue nível de usuário?\nDigite 1 para GERENTE e 2 para CLIENTE ou 0 para sair do '
-                        'sistema: '))
+def application():
 
-    if usuario == 0:
-        print('Muito obrigado pela preferência. É um prazer tê-lo conosco\nVolte Sempre!!')
-        break
-    elif usuario == 1:
-        senha = input('Digite sua senha de acessso: ')
-        if senha == '2123':
-            banco(1)
-        else:
-            print('ERRO!! Senha inválida!!')
-    elif usuario == 2:
-        banco(2)
-    else:
-        print('ERRO!!! Opção Inválida.\nPor favor, digite uma opção válida.')
+    while True:
+
+        usuario = menu_apresentacao()
+
+        if usuario == 1:
+            senha = input('Digite sua senha de acessso: ')
+            if senha == '1234':
+                aplicacao_gerente()
+            else:
+                print('ERRO!! Senha inválida!!')
+
+        elif usuario == 2:
+            aplicacao_cliente()
+
+        if usuario == 0:
+            print('\t\t Agradecemos à preferência. É um prazer tê-lo conosco!!!')
+            print('\t\t Volte Sempre!!!')
+            sleep(2)
+            break
+
+
+if __name__ == '__main__':
+    application()
 
 """
     if opcao == 1:

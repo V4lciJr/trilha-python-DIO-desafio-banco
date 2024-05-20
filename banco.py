@@ -1,34 +1,17 @@
-from menus import menu_cliente, menu_gerente, menu_emprestimo
+import sys
+from endereco import Endereco
 from time import sleep
 from cliente import Cliente
 from conta import Conta
 from os import system
+from menus import menu_emprestimo
 
-numero_saques = 0
+
 LIMITE_SAQUES = 3
+numero_saques = 0
+tem_emprestimo = False
 contas = []
 clientes = []
-
-
-def banco(tipo):
-    while True:
-        system('cls')
-        op = None
-
-        if tipo == 1:
-            op = aplicacao_gerente()
-        elif tipo == 2:
-            op = aplicacao_cliente()
-
-        else:
-            print('\t\t Operação Inválida. Volte ao Menu e digite uma opção válida.')
-        sleep(2)
-
-        if op == 0:
-            print('\t\t Agradecemos à preferência. É um prazer tê-lo conosco!!!')
-            print('\t\t Volte Sempre!!!')
-            sleep(1)
-            break
 
 def criar_conta():
     print('Informe os dados do Cliente: ')
@@ -36,8 +19,14 @@ def criar_conta():
     cpf = input('CPF: ')
     data_nascimento = input('Data de Nascimento [dd/mm/aaaa]: ')
     email = input('Email: ')
+    rua = input('Rua: ')
+    numero_casa = input('Número da Casa: ')
+    bairro = input('Bairro: ')
+    cidade = input('cidade: ')
+    estado = input('Estado: ')
 
-    cliente = Cliente(nome, cpf, data_nascimento, email)
+    endereco = Endereco(rua, numero_casa, bairro, cidade, estado)
+    cliente = Cliente(nome, cpf, data_nascimento, email, endereco)
     conta = Conta(cliente)
 
     contas.append(conta)
@@ -51,6 +40,7 @@ def criar_conta():
 
 
 def efetuar_saque():
+    global numero_saques
     if possui_contas():
         tipo_operacao = 'sacar'
         numero_conta = int(input('Digite o número da sua conta: '))
@@ -60,7 +50,11 @@ def efetuar_saque():
             valor = ler_valor(tipo_operacao)
             eh_menor, valor = saldo_insuficiente(valor, conta.saldo_total, tipo_operacao)
             if eh_menor:
-                conta.sacar(valor, 'Saque de R$')
+                if numero_saques <=  LIMITE_SAQUES:
+                    conta.sacar(valor, 'Saque de R$')
+                    numero_saques += 1
+                else:
+                    print('Você ultrapassou o seu limite de saques diários!!')
 
 
 def efetuar_deposito():
@@ -92,25 +86,30 @@ def efetuar_transferencia():
 
 def realizar_emprestimo(tipo_acesso=0):
     taxa=0.4
+    global tem_emprestimo
     if possui_contas():
         numero_conta = int(input('Digite o número da sua conta: '))
         conta = buscar_conta_por_numero(numero_conta)
 
-        if tipo_acesso == 1:
+        if tem_emprestimo:
+            print('EMPRÉSTIMO NEGADO!!!\nInfelizmente, só permitimos um empréstimo por conta e você já possui um')
+
+        elif tipo_acesso == 1:
             resp = input('Deseja mudar a taxa de empréstimo do cliente? S ou N').upper()
             if resp in 'SIM':
                 taxa = float(input('Informe a taxa negociada: EX: 10% 20%: '))
                 taxa /= 100
-        if valida_conta(conta, numero_conta, realizar_emprestimo):
+        elif valida_conta(conta, numero_conta, realizar_emprestimo):
             salario = float(input('Digite o valor do seu salário: R$ '))
             parcela = float(input('Informa o valor da parcela que seja pagar por mês: R$ '))
             emprestimo(salario, parcela, conta, realizar_emprestimo,taxa)
 
 def emprestimo(salario, valor_parcela, conta, funcao, taxa=0.4):
+    global tem_emprestimo
     limite_parcela = salario * 0.2
 
     if valor_parcela > limite_parcela:
-        print('EMPRÉSTIMO NEGADO!!!\nO valor da parcela não pode compromenter mais do que 20% do salário.')
+        print('EMPRÉSTIMO NEGADO!!!\nO valor da parcela não pode compromenter mais do que 20% do seu salário.')
         print(f'Valor Máximo da parcela: R$ {limite_parcela:.2f}')
         funcao()
     else:
@@ -118,16 +117,25 @@ def emprestimo(salario, valor_parcela, conta, funcao, taxa=0.4):
         limite_emprestimo = total_a_pagar - (total_a_pagar * taxa)
         resp = menu_emprestimo(limite_emprestimo, total_a_pagar)
         if resp == 1:
-            conta.depositar(limite_emprestimo)
+            conta.depositar(limite_emprestimo, 'Empréstimo do Banco DIO Bank')
+            tem_emprestimo = True
         elif resp == 2:
             valor = float(input('Digite o valor do Empréstimo desejado: '))
-            if valor >= limite_emprestimo:
-                conta.depositar(valor)
+            if valor <= limite_emprestimo:
+                conta.depositar(valor, 'Empréstimo do Banco DIO Bank')
+                tem_emprestimo = True
             else:
                 print(f'Valor não Permitido!! R${valor:.2f} ultrapassa o seu Limite de Empréstimos.')
         else:
             exit()
 
+
+def aumentar_limite_conta():
+    if possui_contas():
+        numero_conta = int(input('Digite o número da sua conta: '))
+        conta = buscar_conta_por_numero(numero_conta)
+        novo_limite = float(input('Informe o novo limite da conta: R$ '))
+        conta.limite(novo_limite)
 
 
 def listar_contas():
@@ -148,7 +156,7 @@ def listar_clientes():
             print('\t\t ' + '*' * 40)
 
 
-def pesquisar_conta():
+def pesquisar_conta_por_id():
     if possui_contas():
         numero_conta = int(input('Digite o número da conta que deseja pesquisar: '))
         conta = buscar_conta_por_numero(numero_conta)
@@ -158,10 +166,11 @@ def pesquisar_conta():
             sleep(2)
         else:
             print(f'Não foram encontradas contas com o número {numero_conta}. Verifique o número da conta!!')
-            pesquisar_conta()
+            pesquisar_conta_por_id()
 
 
-def pesquisar_cliente():
+def pesquisar_cliente_por_id():
+
     if possui_clientes():
         numero_cliente = int(input('Digite o ID do cliente que deseja pesquisar: '))
         cliente = buscar_cliente_por_numero(numero_cliente)
@@ -171,7 +180,7 @@ def pesquisar_cliente():
             sleep(2)
         else:
             print(f'Não encontramos cliente(s) com o número {numero_cliente}. Verifique o ID do cliente!!')
-            pesquisar_cliente()
+            pesquisar_cliente_por_id()
 
 
 def imprimir_extrato():
@@ -249,31 +258,6 @@ def possui_contas():
 def possui_clientes():
     return True if len(clientes) > 0 else print('\t\t Ainda não possuem clientes cadastrados!!')
 
+def opcao_invalida():
+    print('ERRO!!! Opção Inválida.\nPor favor, digite uma opção válida.')
 
-
-def operacoes_gerais(op):
-
-    if op == 1:
-        criar_conta()
-    elif op == 2:
-        efetuar_saque()
-    elif op == 3:
-        efetuar_deposito()
-    elif op == 4:
-        efetuar_transferencia()
-    elif op == 5:
-        realizar_emprestimo()
-    elif op == 6:
-        imprimir_extrato()
-
-def aplicacao_cliente():
-    op = menu_cliente()
-    operacoes_gerais(op)
-    return op
-
-
-def aplicacao_gerente():
-
-    op = menu_gerente()
-
-    return op

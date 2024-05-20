@@ -6,22 +6,13 @@ class Conta:
     codigo = 1
     agencia = '0001'
 
-    def __init__(self):
-        self.__numero = Conta.codigo
-        self.__saldo = 0
-        self.__limite = 500
-        self.__saldo_total = self.__calcula_saldo_total
-        self.__agencia = Conta.agencia
-        self.__extrato = ''
-        Conta.codigo += 1
-
     def __init__(self, cliente):
         self.__numero = Conta.codigo
         self.__cliente = cliente
         self.__saldo = 0
         self.__limite = 500
         self.__saldo_total = self.__calcula_saldo_total
-        self.__agencia = Conta.agencia
+        self.__ag = Conta.agencia
         self.__extrato = ''
         Conta.codigo += 1
 
@@ -30,8 +21,8 @@ class Conta:
         return self.__numero
 
     @property
-    def agencia(self):
-        return self.__agencia
+    def ag(self):
+        return self.__ag
 
     @property
     def cliente(self):
@@ -50,7 +41,7 @@ class Conta:
         return self.__limite
 
     @limite.setter
-    def _limite(self, valor):
+    def limite(self, valor):
         self.__limite = valor
 
     @property
@@ -76,7 +67,7 @@ class Conta:
         return self.saldo + self.limite
 
     def __str__(self):
-        return f'''         Agência: {self.agencia}
+        return f'''         Agência: {self.ag}
          Número da Conta: {self.numero}
          Cliente:                   {self.cliente.nome}
          Saldo:                     {format_float_for_str(self.saldo)}
